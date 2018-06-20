@@ -44,13 +44,13 @@ encryptValue (PublicKey q p g y) t =
 
 
 reencryptValue :: PublicKey -> (Integer, Integer) -> IO (Integer, Integer)
-reencryptValue (PublicKey q p g y) (c, d) = 
+reencryptValue (PublicKey q p g y) (alpha, beta) = 
   generateMax q >>= \r ->
-  return (c * expSafe g r p, d * expSafe y r p)
+  return (alpha * expSafe g r p, beta * expSafe y r p)
 
 decryptValue :: PrivateKey -> PublicKey -> (Integer, Integer) -> Integer
-decryptValue (PrivateKey x) (PublicKey q p g y) (c, d) = expSafe (d * inv) 1 p where
-   inv = maybe 0 id (inverse (expSafe c x p) p) 
+decryptValue (PrivateKey x) (PublicKey q p g y) (alpha, beta) = expSafe (beta * inv) 1 p where
+   inv = maybe 0 id (inverse (expSafe alpha x p) p) 
 
 parseHex :: String -> Integer
 parseHex = parse . reverse where
