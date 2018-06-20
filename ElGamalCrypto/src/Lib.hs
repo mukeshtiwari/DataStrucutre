@@ -41,6 +41,14 @@ encryptValue (PublicKey q p g y) t =
   return (expSafe g r p, t * expSafe y r p)
 
 
+reencryptValue :: PublicKey -> (Integer, Integer) -> IO (Integer, Integer)
+reencryptValue (PublicKey q p g y) (c, d) = 
+  generateMax q >>= \r ->
+  return (c * expSafe g r p, d * expSafe y r p)
+
 decryptValue :: PrivateKey -> PublicKey -> (Integer, Integer) -> Integer
 decryptValue (PrivateKey x) (PublicKey q p g y) (c, d) = expSafe (d * inv) 1 p where
-   inv = fromJust . inverse (expSafe c x p) $ p
+   inv = maybe 0 id (inverse (expSafe c x p) p) 
+
+
+
