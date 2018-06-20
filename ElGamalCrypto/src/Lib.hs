@@ -7,8 +7,10 @@ import Crypto.Number.Generate
 import Crypto.Number.ModArithmetic
 import Crypto.Number.Prime
 import Data.Maybe
+import Crypto.Hash
+import qualified Data.ByteString.Char8 as BS
+import Data.Char
 
- 
 {- In Coq, You need (g (generator), q (order of subgroup and it is prime), p (prime such that p = 2 * q + 1), publickey and private key -}
 {- p, q , g, y -}
 data PublicKey = PublicKey Integer Integer Integer Integer deriving Show
@@ -49,6 +51,32 @@ reencryptValue (PublicKey q p g y) (c, d) =
 decryptValue :: PrivateKey -> PublicKey -> (Integer, Integer) -> Integer
 decryptValue (PrivateKey x) (PublicKey q p g y) (c, d) = expSafe (d * inv) 1 p where
    inv = maybe 0 id (inverse (expSafe c x p) p) 
+
+parseHex :: String -> Integer
+parseHex = parse . reverse where
+   parse :: String -> Integer
+   parse []     = 0
+   parse (x:xs) = toInteger  (digitToInt  x) + 16 * parse xs
+
+-- https://github.com/benadida/helios-server/blob/master/helios/crypto/algs.py#L340
+proveDecryption :: PublicKey -> PrivateKey -> (Integer, Integer) -> IO [Integer]
+proveDecryption pk@(PublicKey q p g y)  sk@(PrivateKey x) (alpha, beta) = do 
+  let m = decryptValue sk pk (alpha, beta)
+      beta_over_m = mod (beta * (maybe 0 id (inverse m p))) p
+  w <- generateMax q
+  let a = expSafe g w p
+      b = expSafe alpha w p
+      c = parseHex . show $ (hash . BS.pack $ show a ++ show b :: Digest SHA1)
+      t = mod (w + x * c) q
+  return  [a, b, c, t]
+ 
+   
+verifyDecryption :: PublicKey -> Integer -> (Integer, Integer) -> [Integer] -> Bool
+verifyDecryption (PublicKey q p g y) m (alpha, beta) [a, b, c, t] = 
+  and [expSafe g t p == mod (a * expSafe y c p) p, expSafe alpha t p == mod (b * expSafe (mod (beta * (maybe 0 id (inverse m p))) p) c p) p]
+
+
+
 
 
 
