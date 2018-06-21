@@ -59,8 +59,8 @@ parseHex = parse . reverse where
    parse (x:xs) = toInteger  (digitToInt  x) + 16 * parse xs
 
 -- https://github.com/benadida/helios-server/blob/master/helios/crypto/algs.py#L340
-proveDecryption :: PublicKey -> PrivateKey -> (Integer, Integer) -> IO [Integer]
-proveDecryption pk@(PublicKey q p g y)  sk@(PrivateKey x) (alpha, beta) = do 
+proofDecryption :: PublicKey -> PrivateKey -> (Integer, Integer) -> IO [Integer]
+proofDecryption pk@(PublicKey q p g y)  sk@(PrivateKey x) (alpha, beta) = do 
   let m = decryptValue sk pk (alpha, beta)
       beta_over_m = mod (beta * (maybe 0 id (inverse m p))) p
   w <- generateMax q
@@ -73,7 +73,8 @@ proveDecryption pk@(PublicKey q p g y)  sk@(PrivateKey x) (alpha, beta) = do
    
 verifyDecryption :: PublicKey -> Integer -> (Integer, Integer) -> [Integer] -> Bool
 verifyDecryption (PublicKey q p g y) m (alpha, beta) [a, b, c, t] = 
-  and [expSafe g t p == mod (a * expSafe y c p) p, expSafe alpha t p == mod (b * expSafe (mod (beta * (maybe 0 id (inverse m p))) p) c p) p]
+  and [expSafe g t p == mod (a * expSafe y c p) p, 
+       expSafe alpha t p == mod (b * expSafe (mod (beta * (maybe 0 id (inverse m p))) p) c p) p]
 
 
 
