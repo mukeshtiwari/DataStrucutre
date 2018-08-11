@@ -327,4 +327,53 @@ Section Elliptic.
     apply Keq_minus_eq. rewrite <- H4. ring.
   Qed.
 
+  Lemma add_lem1: forall x1 y1,
+      y1 <> 0 ->
+      y1 ^ 2 = x1 ^ 3 + A * x1 + B ->
+      let l := (3 * x1 * x1 + A) / (2 * y1) in
+      let x3 := l ^ 2 - 2 * x1  in
+      (- y1 - l * (x3 - x1)) ^ 2 = x3 ^ 3 + A * x3 + B.
+  Proof.
+    intros x1 y1 H1 H2 l x3; unfold x3, l.
+    field [H2].
+    auto.
+  Qed.
+
+  (* line passing through two points on curve intersects at third *)
+  Lemma add_lem2: forall x1 y1 x2 y2,
+      x1 <> x2 ->
+      y1 ^ 2 = x1 ^ 3 + A * x1 + B ->
+      y2 ^ 2 = x2 ^ 3 + A * x2 + B ->
+      let l := (y2 - y1) / (x2 - x1) in
+      let x3 := l ^ 2 - x1 - x2 in
+      (- y1 - l * (x3 - x1)) ^ 2 = x3 ^ 3 + A * x3 + B.
+  Proof.
+    intros x1 y1 x2 y2 H H1 H2 l x3; unfold x3, l.
+    field [H1 H2]; auto.
+  Qed.
+
+  Lemma add_zero : forall x1 x2 y1 y2,
+      x1 = x2 ->
+      y1 ^ 2 = x1 ^ 3 + A * x1 + B ->
+      y2 ^ 2 = x2 ^ 3 + A * x2 + B ->
+      y1 <> -y2 -> y1 = y2.
+  Proof.
+    intros x1 x2 y1 y2 H H1 H2 H3; subst x2.
+    case (@Kmult_integral (y1 - y2) (y1 + y2));
+      try (intros H4; apply Keq_minus_eq; auto).
+    ring [H1 H2].
+    case H3; apply Keq_minus_eq; rewrite <- H4;
+      ring.
+  Qed.
+
+  Lemma add_zero_diff : forall x1 x2 y1 y2,
+      x1 = x2 ->
+      y1 ^ 2 = x1 ^ 3 + A * x1 + B ->
+      y2 ^ 2 = x2 ^ 3 + A * x2 + B ->
+      y1 <> -y2 -> y1 <> 0.
+  Proof.
+    intros x1 x2 y1 y2 H H1 H2 H3 H4.
+    pose proof (add_zero _ _ _ _ H H1 H2 H3) as H5.
+    case H3. rewrite <- H5. ring [H4].
+  Qed.
   
