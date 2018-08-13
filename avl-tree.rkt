@@ -1,5 +1,6 @@
 #lang racket
 
+
 (define-struct avl-tree
   (value left-tree right-tree)
   #:transparent)
@@ -27,29 +28,33 @@
 ;; and then perform rotation on tree
 
 ; https://upload.wikimedia.org/wikipedia/commons/c/c4/Tree_Rebalancing.gif
-(define (left-left-rotation a-tree)
+;; right-rotation
+(define (left-left-case a-tree)
   (match a-tree
-   [(avl-tree x (avl-tree y left-left-tree left-right-tree) right-tree)
-    (avl-tree y left-left-tree (avl-tree x left-right-tree right-tree))]))
+    [(avl-tree x (avl-tree y left-left-tree left-right-tree) right-tree)
+     (avl-tree y left-left-tree (avl-tree x left-right-tree right-tree))]))
 
-(define (right-right-rotation a-tree)
+;; left-rotation
+(define (right-right-case a-tree)
   (match a-tree
     [(avl-tree x left-tree (avl-tree y right-left-tree right-right-tree))
-     (avl-tree y (avl-tree left-tree right-left-tree) right-right-tree)]))
-                              
-(define (left-right-rotation a-tree)
+     (avl-tree y (avl-tree x left-tree right-left-tree) right-right-tree)]))
+
+;; Two rotations
+;; Left rotation -> right-rotation
+(define (left-right-case a-tree)
   (match a-tree
-    [(avl-tree x (avl-tree y ll-tree
-                          (avl-tree z lll-tree llr-tree)) right-tree)
-     (avl-tree z
-               (avl-tree y ll-tree lll-tree)
-               (avl-tree x llr-tree right-tree))]))
-                             
-(define (right-left-rotation a-tree)
+    [(avl-tree x left-tree right-tree)
+     (left-left-case (avl-tree x (right-right-case left-tree) right-tree))]))
+    
+
+;; Two rotations
+;; right-rotation -> left-rotation
+(define (right-left-case a-tree)
   (match a-tree
-    [(avl-tree x left-tree (avl-tree y (avl-tree z rrl-tree rrr-tree) rr-tree))
-     (avl-tree z
-               (avl-tree x left-tree rrl-tree)
-               (avl-tree y rrr-tree rr-tree))]))
+    [(avl-tree x left-tree right-tree)
+     (right-right-case (avl-tree x left-tree (left-left-case right-tree)))]))
+
+  
 
 
