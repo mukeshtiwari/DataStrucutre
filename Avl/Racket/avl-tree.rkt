@@ -14,14 +14,14 @@
                (height-of-avl-tree right-tree)))]))
 
 
-(define (search-avl-tree a-tree x)
+(define (search-avl-tree x a-tree)
   (match a-tree
     ['Empty #f]
     [(avl-tree y left-tree right-tree)
      (cond
        [(eq? x y) #t] ;; value is present 
-       [(< x y) (search-avl-tree left-tree x)] ;; x < y go left
-       [else (search-avl-tree right-tree x)])])) ;; else go right
+       [(< x y) (search-avl-tree x left-tree)] ;; x < y go left
+       [else (search-avl-tree x right-tree)])])) ;; else go right
 
 
 ;; Idea here is you perform insertion in same way as bst
