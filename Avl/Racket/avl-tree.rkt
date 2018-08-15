@@ -5,7 +5,7 @@
   (value left-tree right-tree)
   #:transparent)
 
-
+;; total function
 (define (height-of-avl-tree a-tree)
   (match a-tree
     ['Empty 0]
@@ -13,7 +13,7 @@
      (+ 1 (max (height-of-avl-tree left-tree)
                (height-of-avl-tree right-tree)))]))
 
-
+;; Total function
 (define (search-avl-tree x a-tree)
   (match a-tree
     ['Empty #f]
@@ -107,7 +107,15 @@
      (match left-child
        ['Empty x]
        [else (find-min-in-tree left-child)])]))
-       
+
+
+(define (find-max-in-tree a-tree)
+  (match a-tree
+    ['Empty 'None]
+    [(avl-tree x left-child right-child)
+     (match right-child
+       ['Empty x]
+       [else (find-max-in-tree right-child)])]))
 
                          
 ;; same as binary search deleteion, but followed by rotation
@@ -139,7 +147,22 @@
     ['Empty empty]
     [(avl-tree x left-tree right-tree)
      (append (in-order-traversal left-tree) (list x) (in-order-traversal right-tree))]))
+
+(define (pre-order-traversal a-tree)
+  (match a-tree
+    ['Empty empty]
+    [(avl-tree x left-tree right-tree)
+     (append (list x) (pre-order-traversal left-tree) (pre-order-traversal right-tree))]))
+
+(define (post-order-traversal a-tree)
+  (match a-tree
+    ['Empty empty]
+    [(avl-tree x left-tree right-tree)
+     (append (post-order-traversal left-tree) (post-order-traversal right-tree) (list x))]))
+
   
 (define t (foldl (λ(x acc) (insert-v-into-tree x acc)) 'Empty (range 1 20)))
 (in-order-traversal t)
 (in-order-traversal (delete-v-from-tree 8 t))
+
+;; Todo write some unit test cases, but Can I write quickcheck or fuzzer to fuzz this ?
