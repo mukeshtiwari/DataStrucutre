@@ -50,7 +50,7 @@
   (match a-tree
     [(avl-tree x left-tree right-tree)
      (left-left-case (avl-tree x (right-right-case left-tree) right-tree))]))
-    
+
 (left-right-case (avl-tree 4 (avl-tree 2 'Empty (avl-tree 3 'Empty 'Empty)) 'Empty))
 
 ;; Two rotations
@@ -99,6 +99,47 @@
         [(< v x) (avl-tree x (insert-v-into-tree v left-tree) right-tree)]
         [else (avl-tree x left-tree (insert-v-into-tree v right-tree))]))]))
 
-     
-(time (foldl (λ(x acc) (insert-v-into-tree x acc)) 'Empty (range 1 20)))
 
+(define (find-min-in-tree a-tree)
+  (match a-tree
+    ['Empty 'None]
+    [(avl-tree x left-child right-child)
+     (match left-child
+       ['Empty x]
+       [else (find-min-in-tree left-child)])]))
+       
+
+                         
+;; same as binary search deleteion, but followed by rotation
+;; https://courses.cs.washington.edu/courses/cse332/10sp/lectures/lecture8.pdf
+(define (delete-v-from-tree v a-tree)
+  (match a-tree
+    ['Empty 'Empty]
+    [(avl-tree x left-tree right-tree)
+     (rotate-avl-tree 
+      (cond
+        [(< v x) (avl-tree x (delete-v-from-tree v left-tree) right-tree)]
+        [(> v x) (avl-tree x left-tree (delete-v-from-tree v right-tree))]
+        [else
+         (match/values
+             (values left-tree right-tree)
+           [((avl-tree xlc left-left-tree left-right-tree)
+             (avl-tree xrc right-left-tree right-right-tree))
+            (let ([succ-x (find-min-in-tree right-tree)])
+              (avl-tree succ-x left-tree (delete-v-from-tree succ-x right-tree)))]
+           [((avl-tree xlc left-left-tree left-right-tree)
+             'Empty) (avl-tree xlc left-left-tree left-right-tree)]
+           [('Empty (avl-tree xrc right-left-tree right-right-tree))
+            (avl-tree xrc right-left-tree right-right-tree)]
+           [('Empty 'Empty) 'Empty])]))]))
+
+  
+(define (in-order-traversal a-tree)
+  (match a-tree
+    ['Empty empty]
+    [(avl-tree x left-tree right-tree)
+     (append (in-order-traversal left-tree) (list x) (in-order-traversal right-tree))]))
+  
+(define t (foldl (λ(x acc) (insert-v-into-tree x acc)) 'Empty (range 1 20)))
+(in-order-traversal t)
+(in-order-traversal (delete-v-from-tree 8 t))
