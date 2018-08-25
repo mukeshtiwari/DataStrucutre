@@ -261,7 +261,7 @@ Section Elliptic.
 
   Notation "x ?= y" := (Kdec x y) (at level 70).
 
-  Definition ceqb: forall a b: elt, {a = b} + {a<>b}.
+  Definition ceqb: forall a b: elt, {a = b} + { a <> b}.
   Proof.
     intros a b. case a; case b; auto;
                   try (intros x y e; right; intros H; abstract congruence).
@@ -273,6 +273,7 @@ Section Elliptic.
     right; intros H2; injection H2; intros H3 H4;
       subst; abstract congruence.
   Qed.
+
 
   Theorem is_zero_true: forall e, is_zero e = true -> e = 0.
   Proof.
@@ -1342,9 +1343,58 @@ Section Elliptic.
     forall (v1 v2 v3 : nat) (e : elt),
       Nat.add v1 v2 = v3 -> add (point_mult v1 e) (point_mult v2 e) = point_mult v3 e. 
   Proof.
-    intros. pose proof (point_mult_distribute v1 v2 e) as H1.
-    subst. symmetry in H1.  assumption.
+    intros.
+    pose proof (point_mult_distribute v1 v2 e) as H1.
+    subst. symmetry in H1. assumption.
   Qed.
+
+  
+  Lemma point_addition_scalar :
+    forall (v1 v2 : nat) (e : elt),
+      point_mult v1 e = point_mult v2 e -> v1 = v2.
+  Proof.
+  Admitted.
+
+
+  Lemma point_four_swap :
+    forall (p1 p2 p3 p4 : elt),
+      add (add p1 p2) (add p3 p4) = add (add p1 p3) (add p2 p4).
+  Proof.
+  Admitted.
+
+  Lemma point_equality :
+    forall (p1 p2 p3 : elt),
+      add p1 p2 = add p3 p2 -> p1 = p3.
+  Admitted.
+  
+  Lemma blinding_factor :
+    forall (vi1 vi2 vo3 ri1 ri2 ro3 : nat) (G H : elt),
+      Nat.add vi1 vi2 = vo3 ->
+      add (add (point_mult ri1 G) (point_mult vi1 H))
+          (add (point_mult ri2 G) (point_mult vi2 H)) =
+      add (point_mult ro3 G) (point_mult vo3 H) ->
+      Nat.add ri1 ri2 = ro3.
+  Proof.
+    intros.
+    pose proof (point_four_swap (point_mult ri1 G) (point_mult vi1 H)
+                                (point_mult ri2 G) (point_mult vi2 H)) as H2.
+    rewrite H2 in H1.
+    pose proof (point_mult_distribute ri1 ri2 G).
+    pose proof (point_mult_distribute vi1 vi2 H).
+    symmetry in H3, H4.
+    rewrite H3 in H1.
+    rewrite H4 in H1.
+    rewrite H0 in H1.
+    pose proof (point_equality (point_mult (ri1 + ri2) G)
+                               (point_mult vo3 H)
+                               (point_mult ro3 G) H1).
+    apply point_addition_scalar in H5.
+    assumption.
+  Qed.
+  
+                               
+    
+    
 
   
   
