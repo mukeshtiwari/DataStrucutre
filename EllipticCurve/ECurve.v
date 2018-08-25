@@ -1329,13 +1329,26 @@ Section Elliptic.
   (* (k+j)*H = k*H + j*H *)
   Lemma point_mult_distribute : forall k j e,
       point_mult (k + j) e = add (point_mult k e) (point_mult j e).
-  Proof.
+  Proof. 
     induction k; simpl; intros; try auto.
     specialize (IHk j e). rewrite IHk.
     pose proof (add_assoc e (point_mult k e) (point_mult j e)).
     rewrite H. auto.
   Qed.
 
-  
 
+  (* v1 + v2 = v3  =>  v1*H + v2*H = v3*H *)
+  Lemma addition_verification :
+    forall (v1 v2 v3 : nat) (e : elt),
+      Nat.add v1 v2 = v3 -> add (point_mult v1 e) (point_mult v2 e) = point_mult v3 e. 
+  Proof.
+    intros. pose proof (point_mult_distribute v1 v2 e) as H1.
+    rewrite <- H1.  rewrite <- H.
+    reflexivity.
+  Qed.
+
+  
+  
+  
+    
   
