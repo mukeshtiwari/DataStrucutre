@@ -1429,14 +1429,12 @@ Section Elliptic.
     rewrite H3. rewrite H4.
     rewrite H0, H1. auto.
   Qed.
+
+  (* Start ownership proof *)
+
   
                                
-    
-    
-
   
-  
-
   
   
   
