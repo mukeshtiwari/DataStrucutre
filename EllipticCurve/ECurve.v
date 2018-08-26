@@ -1365,8 +1365,10 @@ Section Elliptic.
   Lemma point_equality :
     forall (p1 p2 p3 : elt),
       add p1 p2 = add p3 p2 -> p1 = p3.
-  Admitted.
-  
+  Proof.
+    
+    
+    
   Lemma blinding_factor :
     forall (vi1 vi2 vo3 ri1 ri2 ro3 : nat) (G H : elt),
       Nat.add vi1 vi2 = vo3 ->
