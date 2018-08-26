@@ -1365,9 +1365,14 @@ Section Elliptic.
   Lemma point_equality :
     forall (p1 p2 p3 : elt),
       add p1 p2 = add p3 p2 -> p1 = p3.
-  Proof.
-    
-    
+  Proof. 
+    intros.
+    pose proof (add_comm p1 p2) as H0.
+    pose proof (add_comm p3 p2) as H1.
+    rewrite H0 in H. rewrite H1 in H.
+    pose proof (cancel _ _ _ H). auto.
+  Qed.
+  
     
   Lemma blinding_factor :
     forall (vi1 vi2 vo3 ri1 ri2 ro3 : nat) (G H : elt),
