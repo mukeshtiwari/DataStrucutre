@@ -1360,8 +1360,18 @@ Section Elliptic.
     forall (p1 p2 p3 p4 : elt),
       add (add p1 p2) (add p3 p4) = add (add p1 p3) (add p2 p4).
   Proof.
-    
-    
+    intros.
+    rewrite <- add_assoc.
+    pose proof (add_comm p2 (add p3 p4)).
+    rewrite H. clear H.
+    pose proof (add_assoc p3 p4 p2).
+    rewrite <- H. clear H.
+    pose proof (add_assoc p1 p3 (add p2 p4)).
+    rewrite <- H. clear H.
+    pose proof (add_comm p2 p4). rewrite H.
+    reflexivity.
+  Qed.
+   
 
   Lemma point_equality :
     forall (p1 p2 p3 : elt),
