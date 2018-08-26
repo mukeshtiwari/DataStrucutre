@@ -1348,12 +1348,13 @@ Section Elliptic.
     subst. symmetry in H1. assumption.
   Qed.
 
+  (* It requires some v1 = v2 (mod p), and we don't need it probably but keep it
   
   Lemma point_addition_scalar :
     forall (v1 v2 : nat) (e : elt),
       point_mult v1 e = point_mult v2 e -> v1 = v2.
   Proof.
-  Admitted.
+  Admitted. *)
 
 
   Lemma point_four_swap :
@@ -1384,7 +1385,8 @@ Section Elliptic.
     pose proof (cancel _ _ _ H). auto.
   Qed.
   
-    
+
+  (* 
   Lemma blinding_factor :
     forall (vi1 vi2 vo3 ri1 ri2 ro3 : nat) (G H : elt),
       Nat.add vi1 vi2 = vo3 ->
@@ -1405,9 +1407,27 @@ Section Elliptic.
     rewrite H0 in H1.
     pose proof (point_equality (point_mult (ri1 + ri2) G)
                                (point_mult vo3 H)
-                               (point_mult ro3 G) H1).
+                               (point_mult ro3 G) H1). 
     apply point_addition_scalar in H5.
     assumption.
+  Qed. *)
+
+   Lemma blinding_factor :
+    forall (vi1 vi2 vo3 ri1 ri2 ro3 : nat) (G H : elt),
+      Nat.add vi1 vi2 = vo3 ->  Nat.add ri1 ri2 = ro3 ->
+      add (add (point_mult ri1 G) (point_mult vi1 H))
+          (add (point_mult ri2 G) (point_mult vi2 H)) =
+      add (point_mult ro3 G) (point_mult vo3 H).
+  Proof.
+    intros. 
+    pose proof (point_four_swap (point_mult ri1 G) (point_mult vi1 H)
+                                (point_mult ri2 G) (point_mult vi2 H)) as H2.
+    pose proof (point_mult_distribute ri1 ri2 G).
+    pose proof (point_mult_distribute vi1 vi2 H).
+    rewrite H2. 
+    symmetry in H3, H4.
+    rewrite H3. rewrite H4.
+    rewrite H0, H1. auto.
   Qed.
   
                                
