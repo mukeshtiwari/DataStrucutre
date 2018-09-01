@@ -1318,8 +1318,10 @@ Section Elliptic.
 
 
 
-
+  
   (* multiplying natural number to point on Curve *)
+  (* For cryptographic usage, use Montgomery Ladder 
+     https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication *)
   Fixpoint point_mult (n : nat) (e : elt) : elt :=
     match n with
     | O => Inf_elt
@@ -1412,6 +1414,7 @@ Section Elliptic.
     assumption.
   Qed. *)
 
+  
    Lemma blinding_factor :
     forall (vi1 vi2 vo3 ri1 ri2 ro3 : nat) (G H : elt),
       Nat.add vi1 vi2 = vo3 ->  Nat.add ri1 ri2 = ro3 ->
@@ -1433,6 +1436,25 @@ Section Elliptic.
   (* Start ownership proof *)
 
   
+  (* element e is valid publickey if there exists a k such that 
+     e = k * G *)
+  Definition valid_publickey (e : elt) (G : elt) : Prop :=
+    exists k, e = point_mult k G.
+
+  
+  Lemma owenership_proof :
+    forall (r1 r2 k : nat) (xi y G H : elt),
+    y = add (point_mult r1 G) (point_mult k H) ->
+    xi = add (point_mult r2 G) (point_mult k  H) ->
+    valid_publickey (add y (opp xi)) G.
+  Proof.
+    intros r1 r2 k xi y G H Hy Hx.
+    unfold valid_publickey.
+    rewrite Hy. rewrite Hx.
+    rewrite opp_add. rewrite point_four_swap.
+    rewrite add_opp. rewrite add_0_r.
+    
+    
                                
   
   
