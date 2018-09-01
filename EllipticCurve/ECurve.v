@@ -1472,7 +1472,7 @@ Section Elliptic.
      Natural subtraction in Coq are bougs if it goes to negative. 
      (1 - 4) mod 7 would be 4, but Coq subtraction would 
      make 1 - 4 = 0 and mod 7 = 0. We need Algbraic structure! *) 
-  Lemma owenership_proof :
+  Lemma ownership_proof :
     forall (r1 r2 k : nat) (xi y G H : elt) (Hr : r2 >= r1),
       xi = add (point_mult r1 G) (point_mult k H) ->
       y = add (point_mult r2 G) (point_mult k H) ->
@@ -1489,6 +1489,7 @@ Section Elliptic.
     auto. auto.
   Qed.
 
+  
   
   
     
