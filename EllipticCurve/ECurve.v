@@ -1441,19 +1441,56 @@ Section Elliptic.
   Definition valid_publickey (e : elt) (G : elt) : Prop :=
     exists k, e = point_mult k G.
 
+  Require Import ZArith Psatz.
+  Require Import Omega.
   
-  Lemma owenership_proof :
-    forall (r1 r2 k : nat) (xi y G H : elt),
-    y = add (point_mult r1 G) (point_mult k H) ->
-    xi = add (point_mult r2 G) (point_mult k  H) ->
-    valid_publickey (add y (opp xi)) G.
+  (* Assume r1 is greater than r2 because Natural substractions 
+     are bogus. I came to know this in DeepSpec summer school, and 
+     Andrew Appel demonstrated Theorem bogus_subtraction: ¬ (∀ k:nat, k > k - 3).
+     https://softwarefoundations.cis.upenn.edu/vfa-current/Perm.html#lab14 *)
+
+  (* r1 >= r2 is not needed for the underlying structure because of 
+     modulo prime it wraps around so first thing would be designing or taking the 
+     Coq code from fiat-crypto or Coqprime or ssr-elliptic-curve whichever is 
+     helpful *)
+  Lemma point_mult_opp :
+    forall (e : elt) (r1 r2 : nat) (H : r1 >= r2),
+      point_mult (Nat.sub r1 r2) e = add (point_mult r1 e) (opp (point_mult r2 e)).
   Proof.
-    intros r1 r2 k xi y G H Hy Hx.
+    intros e r1.
+    induction r1.
+    - intros. inversion H. simpl. auto.
+    - intros. simpl. destruct r2.
+      -- simpl. rewrite add_0_r. auto.
+      -- simpl. assert (r1 >= r2) by omega.
+         rewrite opp_add. rewrite point_four_swap.
+         rewrite add_opp. rewrite add_0_l.
+         pose proof (IHr1 r2 H0). assumption.
+  Qed.
+  
+  (* The hypothesis Hr is superfluous and it's here because of 
+     Natural subtraction in Coq are bougs if it goes to negative. 
+     (1 - 4) mod 7 would be 4, but Coq subtraction would 
+     make 1 - 4 = 0 and mod 7 = 0. We need Algbraic structure! *) 
+  Lemma owenership_proof :
+    forall (r1 r2 k : nat) (xi y G H : elt) (Hr : r2 >= r1),
+      xi = add (point_mult r1 G) (point_mult k H) ->
+      y = add (point_mult r2 G) (point_mult k H) ->
+      valid_publickey (add y (opp xi)) G.
+  Proof.
+    intros r1 r2 k xi y G H Hr Hy Hx.
     unfold valid_publickey.
     rewrite Hy. rewrite Hx.
     rewrite opp_add. rewrite point_four_swap.
     rewrite add_opp. rewrite add_0_r.
-    
+    (* I know that k0 = (r1 - r2) and we need to prove bunch of lemmas 
+       about point_multiplication *)
+    exists (Nat.sub r2 r1). rewrite point_mult_opp.
+    auto. auto.
+  Qed.
+
+  
+  
     
                                
   
