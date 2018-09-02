@@ -1521,7 +1521,10 @@ Section Elliptic.
   Qed.
 
   
-       
+  (* Apparently I was looking for ziffy tactic. 
+     Also worth looking into: the `zify` tactic, which turns a goal involving 
+     natural numbers into one involving `Z`. *)
+  
 
   
 
