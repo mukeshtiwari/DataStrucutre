@@ -1317,7 +1317,7 @@ Section Elliptic.
   
 
 
-
+  
   
   (* multiplying natural number to point on Curve *)
   (* For cryptographic usage, use Montgomery Ladder 
@@ -1467,6 +1467,20 @@ Section Elliptic.
          rewrite add_opp. rewrite add_0_l.
          pose proof (IHr1 r2 H0). assumption.
   Qed.
+
+
+  Lemma point_mult_add :
+    forall (e : elt) (r1 r2 : nat),
+      point_mult (Nat.add r1 r2) e = add (point_mult r1 e) (point_mult r2 e).
+  Proof.
+    intros e r1.
+    induction r1; simpl; intros; try auto.
+    rewrite <- add_assoc. rewrite IHr1.
+    reflexivity.
+  Qed.
+  
+
+    
   
   (* The hypothesis Hr is superfluous and it's here because of 
      Natural subtraction in Coq are bougs if it goes to negative. 
@@ -1488,6 +1502,28 @@ Section Elliptic.
     exists (Nat.sub r2 r1). rewrite point_mult_opp.
     auto. auto.
   Qed.
+
+  Lemma change_proof :
+    forall (r1 r2 r3 k1 k2 : nat)  (initial change carol G H : elt) (Hr : r1 + r2 >= r3),  
+      initial = add (point_mult r3 G) (point_mult (Nat.add k1 k2) H) ->
+      change = add (point_mult r1 G) (point_mult k1 H) -> 
+      carol = add (point_mult r2 G) (point_mult k2 H) ->
+      valid_publickey (add (add change carol) (opp initial)) G.
+  Proof.
+    intros r1 r2 r3 k1 k2 initial change carol G H Hr Hini Hch Hca.
+    unfold valid_publickey; subst.
+    rewrite point_four_swap. rewrite <- point_mult_add.  
+    rewrite <- point_mult_add.
+    rewrite opp_add. rewrite point_four_swap.
+    rewrite add_opp. rewrite add_0_r.
+    exists (Nat.sub (Nat.add r1 r2) r3).
+    rewrite point_mult_opp; try auto.
+  Qed.
+
+  
+       
+
+  
 
   
   
