@@ -1318,15 +1318,20 @@ Section Elliptic.
 
 
   
+  (* Theorem opp_add: forall p1 p2, opp (add p1 p2) = add (opp p1) (opp p2). 
+     https://crypto.stackexchange.com/questions/31065/elliptic-curve-multiplication-with-negative-factor/31066#31066 *)
+
   
   (* multiplying natural number to point on Curve *)
   (* For cryptographic usage, use Montgomery Ladder 
      https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication *)
+  
   Fixpoint point_mult (n : nat) (e : elt) : elt :=
     match n with
     | O => Inf_elt
     | S n' => add e (point_mult n' e)
-    end.
+    end. 
+  
 
 
   (* (k+j)*H = k*H + j*H *)
@@ -1524,11 +1529,49 @@ Section Elliptic.
   (* Apparently I was looking for ziffy tactic. 
      Also worth looking into: the `zify` tactic, which turns a goal involving 
      natural numbers into one involving `Z`. *)
-  
+
+  Require Import Coq.PArith.BinPos.
+
+  (* This function works on positive data structure represented as binary
+     numbers. https://coq.inria.fr/library/Coq.Numbers.BinNums.html *)
+
+
+
 
   
+  Fixpoint point_mult_pos (p : positive) (e : elt) : elt :=
+    match p with
+    | xH => e
+    | xO p' => point_mult_pos p' (add e e)
+    | xI p' => add e (point_mult_pos p' (add e e))
+    end. 
 
+
+    
+  Lemma point_mult_pos_distribute :
+    forall (k j : positive) (e : elt),
+      point_mult_pos (k + j) e = add (point_mult_pos k e) (point_mult_pos j e).
+  Proof.
+    induction k using Pos.peano_rect; induction j using Pos.peano_rect;
+      intros; try auto. 
+    +  
+      
+      
   
+  Fixpoint point_mult_z (n : Z) (e : elt) : elt :=
+    match n with
+    | Z0 => Inf_elt
+    | Zpos p => point_mult_pos p e
+    | Zneg p => point_mult_pos p (opp e)
+    end.
+  
+ 
+  Lemma point_mult_distribute_z : forall k j e,
+      point_mult_z (k + j) e = add (point_mult_z k e) (point_mult_z j e).
+  Proof.
+    induction k; destruct j; intros; try auto.
+    + simpl; rewrite add_0_r; reflexivity.
+    + simpl.
   
   
     
