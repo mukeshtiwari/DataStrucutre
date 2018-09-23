@@ -1536,9 +1536,15 @@ Section Elliptic.
      numbers. https://coq.inria.fr/library/Coq.Numbers.BinNums.html *)
 
 
-
+  Fixpoint montgomery_ladder (p : positive) (r0 : elt) (r1 : elt) : elt :=
+    match p with
+    | xH => r1
+    | xO p' => montgomery_ladder p' (add r0 r0) (add r0 r1)
+    | xI p' => montgomery_ladder p' (add r0 r1) (add r1 r1)
+    end.
 
   
+     
   Fixpoint point_mult_pos (p : positive) (e : elt) : elt :=
     match p with
     | xH => e
@@ -1546,13 +1552,14 @@ Section Elliptic.
     | xI p' => add e (point_mult_pos p' (add e e))
     end. 
 
+  Require Import Coq.NArith.BinNat.
 
     
   Lemma point_mult_pos_distribute :
     forall (k j : positive) (e : elt),
       point_mult_pos (k + j) e = add (point_mult_pos k e) (point_mult_pos j e).
   Proof.
-    induction k using Pos.peano_rect; induction j using Pos.peano_rect;
+    induction k using BinNat.binary_rect; induction j using Pos.peano_rect;
       intros; try auto. 
     +  
       
