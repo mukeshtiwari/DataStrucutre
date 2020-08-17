@@ -12,63 +12,87 @@ import Crypto.Hash
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
 
-
-{- Generator (g), q (order of subgroup and it's prime), 
-   p (prime such that p = 2 * q + 1; however, make it more general) -}
-
-{- q p g y (= g ^ x) -}
-data PubKey = PubKey Integer Integer Integer Integer
-  deriving (Show, Eq)
-
-{- private key q p g x -}
-data PriKey = PriKey Integer Integer Integer Integer
-  deriving (Show, Eq)
+{-
+Haskell translation of 
+  https://github.com/benadida/helios-server/blob/0b7da7a902c988de48846897ee9a88ee447e7e78/helios/crypto/elgamal.py 
+-}
 
 
-groupGen :: Integer -> Integer -> IO Integer
-groupGen p q = 
-  generateBetween 2 (p - 1) >>= \genCand ->
-  if | and [expSafe genCand q p == 1, genCand ^ 2 /= 1] -> return genCand
-     | otherwise -> groupGen p q
-
-generateKey :: Int -> IO (PubKey, PriKey)
-generateKey bitLength = do
-   p <- generateSafePrime bitLength
-   let q = div (p - 1) 2
-   g <- groupGen p q 
-   x <- generateMax q
-   let y = expSafe g x p
-       pk = PubKey q p g y
-       sk = PriKey q p g x
-   return (pk, sk)
-
-type Rand = Integer
+type PubKey = Integer
+type PriKey = Integer
+type Gen = Integer
 type PText = Integer
 type CText = (Integer, Integer)
+type Rand = Integer
+type Commitment = Integer
 
-{- additive elgamal. r should come from Zq -}
-encryptValue :: PubKey -> Rand -> PText -> CText
-encryptValue (PubKey q p g y) r m = 
-   (expSafe g r p, expSafe g m p * expSafe y r p)
-
-
-reencryptValue :: PubKey -> Rand -> CText -> CText
-reencryptValue (PubKey q p g y) r (alpha, beta) = 
-  (alpha * expSafe g r p, beta * expSafe y r p)
+groupGenerator :: Integer -> Integer -> IO Integer
+groupGenerator p q = 
+  generateBetween 2 (p-1) >>= \gen ->
+  if | expSafe gen q p == 1 -> return gen
+     | otherwise -> groupGenerator p q
 
 
-{- multiply two ciphertext -}
-mulencValue :: PubKey -> CText -> CText -> CText
-mulencValue (PubKey q p g y) (a, b) (c, d) = 
-  (mod (a * c) p, mod (b * d) p)
+generateKey :: Int -> IO (Integer, Integer, Gen, PriKey, PubKey)
+generateKey bitLength  = do 
+  p <- generateSafePrime bitLength
+  let q = div (p - 1) 2
+  g <- groupGenerator p q 
+  x <- generateBetween 2 q
+  return (p, q, g, x, expSafe g x p)
+  
+{-
+*Lib> generateKey 10
+(983,491,158,331,905)
+-}
 
-{- this would the decyption of g^m -}
-decryptValue :: PriKey -> CText -> PText
-decryptValue (PriKey q p g x) (alpha, beta) = expSafe (beta * inv) 1 p where
-  inv = maybe 0 id (inverse (expSafe alpha x p) p)
+p :: Integer
+p = 983
+
+q :: Integer
+q = 491
+
+g :: Integer
+g = 158
+
+h :: Integer
+h = 4
+
+prikey :: Integer
+prikey = 331
+
+pubkey :: Integer
+pubkey = 905
 
 
+encryptWithR :: Rand -> PText -> CText
+encryptWithR r m = (expSafe g r p, mod (m * expSafe pubkey r p) p)
 
+encryptValue :: PText -> IO CText
+encryptValue m = do 
+  r <- generateBetween 2 q
+  return (encryptWithR r m)
 
+reencryptWithR :: Rand -> CText -> CText
+reencryptWithR r (a, b) = (mod (a * expSafe g r p) p, mod (b * expSafe pubkey r p) p)
 
-   
+reencryptValue :: CText -> IO CText
+reencryptValue ctext = do 
+  r <- generateBetween 2 q
+  return (reencryptWithR r ctext)
+
+multencValue :: CText -> CText -> CText 
+multencValue (a, b) (c, d) = (mod (a * c) p, mod (b * d) p)
+
+decryptValue :: CText -> PText
+decryptValue (alpha, beta) = mod (beta * ret) p where
+  ret = fromJust . inverse (expSafe alpha prikey p) $ p
+
+pedCommitment :: PText -> Rand -> Commitment
+pedCommitment m r = expSafe g m p * expSafe h r p
+
+vectorPedCommitment :: Rand -> [Gen] -> [PText] -> Commitment
+vectorPedCommitment r hs ms = 
+    expSafe g r p * (product . zipWith (\h m -> expSafe h m p) hs $ ms)
+
+    
